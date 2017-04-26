@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+	  
+	  h1 {
+	    margin-top: 125px;
+	  }
+	  
+	  .no-top-margin h1 {
+	    margin-top: 0;
+	  }
+	  
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+	  .section { position: absolute; right: 15px; top: 10px; color: #AAA; font-family: 'Yanone Kaffeesatz'; font-size: 1.5em; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle, no-top-margin
+
+#React JS
+ By Andrew Sinclair
+
+---
+#Table of Contents
+
+  1. Introduction
+  2. How React Works
+  3. Advanced Features
+
+---
+
+class: center, middle, no-top-margin
+
+#1. Introduction
+
+---
+<div class="section">1. Introduction</div>
+# What Is It?
+
+- Front-end JavaScript framework
+- Developed at Facebook
+
+---
+<div class="section">1. Introduction</div>
+# What Problems Does it Solve?
+
+- Designed for Single Page Applications (SPA)
+- SPAs can be a page within existing Apps
+- SPAs have lots of View Logic and State
+
+---
+<div class="section">1. Introduction</div>
+# How Do I Use It?
+
+- React is just the front-end
+- It will work well with .NET back-end (Ajax, Web sockets, Synchronous requests)
+
+---
+<div class="section">1. Introduction</div>
+# What Does it Look Like?
+
+- Unique JSX syntax (optional)
+
+<div style="float:left; margin-right:10px;">
+```
+// Before
+var Hello = React.createClass({
+  render: function() {
+    return (
+	  <div>Hello World</div>
+	);
+  }
+});
+
+ReactDOM.render(
+  <Hello />,
+  document.getElementById('root')
+);
+```
+</div>
+<div style="float:left;">
+```
+// After
+var Hello = React.createClass({
+  render: function() {
+    return React.createElement(
+	  'div', null, 'Hello World'
+	);
+  }
+});
+
+ReactDOM.render(
+  React.createElement(Hello, null, null),
+  document.getElementById('root')
+);
+```
+
+
+---
+<div class="section">1. Introduction</div>
+# JSX Support?
+
+- This means you have to use a transpiler
+- Vanilla JavaScript is served to browser
+- NuGet packages can take care of that:
+  - ReactJS.NET (MVC 4 and 5) - .NET 4.5
+  - React.AspNet - .NET Core
+
+---
+<div class="section">1. Introduction</div>
+# Transpilers
+
+- Since you have a transpiler at your disposal...
+- You could use any flavour of JS:
+  - TypeScript
+  - ES2015 (formerly ES6)
+  - Plus any future ES versions
+- But you'll need more NuGet packages for that
+
+---
+class: center, middle, no-top-margin
+
+#2. How React Works
+
+---
+<div class="section">2. How React Works</div>
+# Good Design Principles
+- Built on principle of unidirectional data flow through Components
+- Declarative Component definitions:
+  - defines the "what", not the "how"
+- Updating the state triggers updating the view
+- Very easy to reason about view logic
+
+---
+<div class="section">2. How React Works</div>
+# Components
+- Everything is a Component
+- A React SPA is composed of multiple Components
+- A Component can only update it's own state
+- The SPA is just the root component rendered on the DOM
+
+---
+<div class="section">2. How React Works</div>
+# Component Syntax
+- Use `React.createClass()`
+- Implements `render()` function
+- `render()` returns a Component or text
+- Components start with a capital letter and use **PascalCase**
+
+```
+var Hello = React.createClass({
+  render: function() {
+	return <div>Hello World</div>;
+  }
+});
+
+ReactDOM.render(
+  <Hello />,
+  document.getElementById('root')
+);
+```
+
+---
+<div class="section">2. How React Works</div>
+- Component instances have two very useful fields:
+ - `this.props`
+ - `this.props.children`
+
+```
+var Comment = React.createClass({
+  render: function() {
+	// Curly braces in a JSX Component evaluates inline JS
+	// className is used instead of class because "class" is a ES2015 keyword
+	return (
+	  <div className="comment">
+		<h2 className="commentAuthor">
+		  {this.props.author}
+		</h2>
+		{this.props.children}
+	  </div>
+	);
+  }
+});
+
+ReactDOM.render(
+  <Comment author="Andrew">I love to learn!</Comment>,
+  document.getElementById('root')
+);
+```
+
+---
+<div class="section">2. How React Works</div>
+- Another very important field is this.state
+- this.state is immutable, so use the react helper `this.setState()`:
+
+```
+this.setState({ existingData: newData });
+```
+
+- Accessing data is as expected:
+
+```
+var someComponentStateData = this.state.existingData;
+```
+
+---
+<div class="section">2. How React Works</div>  
+# Shadow DOM
+- After setting a state value, any Component (or child Component) that depends
+ on that state will re-render.
+
+- This is called "Shadow DOM" and is very efficient
+- Only the DOM elements that need to re-render, will re-render
+
+---
+<div class="section">2. How React Works</div>
+```
+var CommentBox = React.createClass({
+  loadCommentsFromServer: function() {
+	$.Ajax({
+	  url: 'foo/bar'
+	})
+	.success(function(data) {
+	  this.setState({ data: data });
+	}.bind(this);
+  },
+  getInitialState: function() {
+	return {data: []};
+  },
+  // This special method executes only once per lifecycle of this component
+  // automatically after the component first renders.
+  componentDidMount: function() {
+	this.loadCommentsFromServer();
+	window.setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+  },
+  render: function() {
+	return (
+	  <div className="commentBox">
+		<h1>Comments</h1>
+		// Assume we have a child component that knows what to do with the data
+		<CommentList data={this.state.data} />
+	  </div>
+	);
+  }
+});
+
+// Call component like this:
+<CommentBox pollInterval={2000} />
+```
+---
+class: center, middle, no-top-margin
+
+# That's React in a Nutshell!
+
+---
+
+class: center, middle
+
+#3. Advanced Features
+
+---
+<div class="section">3. Advanced Features</div>
+# Server-Side Rendering
+- Provides a performance boost
+- Configure in .NET code
+
+---
+<div class="section">3. Advanced Features</div>
+# Redux
+- Framework that implements the Flux application architecture
+- Flux was designed in tandem with React
+
+---
+<div class="section">3. Advanced Features</div>
+
+# Redux Architecture
+- Four main component types:
+  - Store
+  - Actions
+  - Reducers
+  - Containers
+- All the state is stored in one place called the "Store"
+- Any "Action" is dispatched as a message
+  - The message will contain the Action ID (an enum, and any data)
+- "Reducers" are made to declaratively handle specific Actions and can `setState`
+- "Containers" map Action dispatchers and the relevant state from the Store into the Components, using IoC
+
+---
+
+# Questions?
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({highlightLanguage: "E4X"});
+    </script>
+  </body>
+</html>
+
+
+
+
